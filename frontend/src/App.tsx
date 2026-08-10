@@ -527,12 +527,13 @@ interface TotpCardProps {
   copied: boolean;
   onCopy: (entry: TotpEntry) => void;
   onEdit: (entry: TotpEntry) => void;
+  onCopyAccount: (account: string) => void;
   onSecret: (entry: TotpEntry) => void;
   onUri: (entry: TotpEntry) => void;
   onDelete: (entry: TotpEntry) => void;
 }
 
-function TotpCard({ entry, now, copied, onCopy, onEdit, onSecret, onUri, onDelete }: TotpCardProps) {
+function TotpCard({ entry, now, copied, onCopy, onEdit, onCopyAccount, onSecret, onUri, onDelete }: TotpCardProps) {
   const remaining = remainingSeconds(entry, now);
   const progress = Math.min(1, remaining / entry.period);
   const ringRadius = 16;
@@ -563,7 +564,17 @@ function TotpCard({ entry, now, copied, onCopy, onEdit, onSecret, onUri, onDelet
       <div className="card-topline">
         <div className="entry-identity">
           <div>
-            <h2>{entry.account || entry.label || "未命名条目"}</h2>
+            <h2>
+              <button
+                className="account-copy-button"
+                type="button"
+                onClick={() => onCopyAccount(entry.account)}
+                aria-label={`复制邮箱 ${entry.account}`}
+                title="点击复制邮箱"
+              >
+                {entry.account || entry.label || "未命名条目"}
+              </button>
+            </h2>
           </div>
         </div>
         <details ref={menuRef} className="entry-menu">
@@ -706,6 +717,20 @@ function App() {
     window.setTimeout(() => setCopiedId((current) => current === entry.id ? null : current), 1600);
   };
 
+  const handleCopyAccount = async (account: string) => {
+    try {
+      await navigator.clipboard.writeText(account);
+    } catch {
+      const input = document.createElement("input");
+      input.value = account;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+    }
+    setToast("邮箱已复制");
+  };
+
   const handleSecret = async (entry: TotpEntry) => {
     try {
       const result = await api.getSecret(entry.id);
@@ -770,7 +795,7 @@ function App() {
         {entries.length > 0 && <div className="results-line">{filteredEntries.length} 个条目{search && `，匹配“${search}”`}</div>}
         {filteredEntries.length > 0 ? (
           <section className="entry-grid" aria-label="TOTP 条目">
-            {filteredEntries.map((entry) => <TotpCard key={entry.id} entry={entry} now={now} copied={copiedId === entry.id} onCopy={handleCopy} onEdit={(item) => setDialog({ mode: "edit", entry: item })} onSecret={handleSecret} onUri={handleUri} onDelete={handleDelete} />)}
+            {filteredEntries.map((entry) => <TotpCard key={entry.id} entry={entry} now={now} copied={copiedId === entry.id} onCopy={handleCopy} onEdit={(item) => setDialog({ mode: "edit", entry: item })} onCopyAccount={handleCopyAccount} onSecret={handleSecret} onUri={handleUri} onDelete={handleDelete} />)}
           </section>
         ) : (
           <section className="empty-state">

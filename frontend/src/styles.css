@@ -209,7 +209,6 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3.5
 .card-topline, .code-row, .card-meta, .field-label-row, .modal-actions, .settings-block { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .entry-identity { min-width: 0; }
 .entry-identity h2 { overflow: hidden; margin: 0 0 2px; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
-.entry-identity p { overflow: hidden; margin: 0; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 
 .entry-menu { position: relative; }
 .entry-menu summary { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; color: var(--faint); cursor: pointer; list-style: none; }

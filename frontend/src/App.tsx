@@ -542,8 +542,7 @@ function TotpCard({ entry, now, copied, onCopy, onEdit, onSecret, onUri, onDelet
       <div className="card-topline">
         <div className="entry-identity">
           <div>
-            <h2>{entry.label || entry.issuer || "未命名条目"}</h2>
-            <p>{entry.account}</p>
+            <h2>{entry.account || entry.label || "未命名条目"}</h2>
           </div>
         </div>
         <details className="entry-menu">

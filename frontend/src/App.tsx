@@ -40,6 +40,14 @@ interface Draft {
   uri: string;
 }
 
+type NoticeKind = "success" | "error" | "info";
+
+interface AppNotice {
+  id: number;
+  message: string;
+  kind: NoticeKind;
+}
+
 const emptyDraft = (): Draft => ({
   issuer: "",
   account: "",
@@ -416,6 +424,7 @@ function EntryDialog({ entry, onClose, onSave }: EntryDialogProps) {
 interface SettingsModalProps {
   onClose: () => void;
   onImported: (count: number) => void;
+  onNotify: (message: string, kind?: NoticeKind) => void;
 }
 
 function parseImportText(raw: string): ExportFile {
@@ -436,9 +445,8 @@ function parseImportText(raw: string): ExportFile {
   return { version: 1, createdAt: new Date().toISOString(), entries };
 }
 
-function SettingsModal({ onClose, onImported }: SettingsModalProps) {
+function SettingsModal({ onClose, onImported, onNotify }: SettingsModalProps) {
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const exportData = async () => {
@@ -454,7 +462,7 @@ function SettingsModal({ onClose, onImported }: SettingsModalProps) {
       link.download = "totem-export.json";
       link.click();
       URL.revokeObjectURL(url);
-      setMessage("导出文件已下载，请存放在安全位置。");
+      onNotify("导出文件已下载，请存放在安全位置。", "success");
     } catch (exportError) {
       setError(friendlyError(exportError));
     } finally {
@@ -464,13 +472,11 @@ function SettingsModal({ onClose, onImported }: SettingsModalProps) {
 
   const importFile = async (file: File) => {
     setError("");
-    setMessage("");
     setBusy(true);
     try {
       const payload = parseImportText(await file.text());
       const result = await api.importEntries(payload);
       onImported(result.imported);
-      setMessage(`已导入 ${result.imported} 个条目。`);
     } catch (importError) {
       setError(friendlyError(importError));
     } finally {
@@ -514,7 +520,6 @@ function SettingsModal({ onClose, onImported }: SettingsModalProps) {
             }} />
           </label>
         </div>
-        {message && <p className="success-message">{message}</p>}
         {error && <p className="form-error" role="alert">{error}</p>}
       </section>
     </div>
@@ -524,7 +529,6 @@ function SettingsModal({ onClose, onImported }: SettingsModalProps) {
 interface TotpCardProps {
   entry: TotpEntry;
   now: number;
-  copied: boolean;
   onCopy: (entry: TotpEntry) => void;
   onEdit: (entry: TotpEntry) => void;
   onCopyAccount: (account: string) => void;
@@ -533,7 +537,7 @@ interface TotpCardProps {
   onDelete: (entry: TotpEntry) => void;
 }
 
-function TotpCard({ entry, now, copied, onCopy, onEdit, onCopyAccount, onSecret, onUri, onDelete }: TotpCardProps) {
+function TotpCard({ entry, now, onCopy, onEdit, onCopyAccount, onSecret, onUri, onDelete }: TotpCardProps) {
   const remaining = remainingSeconds(entry, now);
   const progress = Math.min(1, remaining / entry.period);
   const ringRadius = 16;
@@ -604,7 +608,6 @@ function TotpCard({ entry, now, copied, onCopy, onEdit, onCopyAccount, onSecret,
       <div className="code-row">
         <button className="code-button" type="button" onClick={() => onCopy(entry)} aria-label={`复制验证码 ${entry.code}`}>
           {formatCode(entry.code, entry.digits)}
-          {copied && <span className="copied-pill">已复制</span>}
         </button>
         <div className={`countdown ${remaining <= 5 ? "warning" : ""}`}>
           <svg className="countdown-ring" viewBox="0 0 40 40" aria-hidden="true">
@@ -634,8 +637,17 @@ function App() {
   const [dialog, setDialog] = useState<{ mode: "add" | "edit"; entry?: TotpEntry } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [revealed, setRevealed] = useState<{ title: string; secret: string } | null>(null);
-  const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [toast, setToast] = useState("");
+  const [notices, setNotices] = useState<AppNotice[]>([]);
+  const noticeId = useRef(0);
+
+  const notify = useCallback((message: string, kind: NoticeKind = "info") => {
+    const id = noticeId.current + 1;
+    noticeId.current = id;
+    setNotices((current) => [...current, { id, message, kind }].slice(-5));
+    window.setTimeout(() => {
+      setNotices((current) => current.filter((notice) => notice.id !== id));
+    }, 2800);
+  }, []);
 
   useEffect(() => {
     void api.getSession()
@@ -665,12 +677,6 @@ function App() {
     return undefined;
   }, [authenticated]);
 
-  useEffect(() => {
-    if (!toast) return undefined;
-    const timer = window.setTimeout(() => setToast(""), 2400);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
-
   const filteredEntries = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return entries;
@@ -693,10 +699,10 @@ function App() {
   const handleSave = async (payload: EntryPayload) => {
     if (dialog?.mode === "edit" && dialog.entry) {
       await api.updateEntry(dialog.entry.id, payload);
-      setToast("Entry updated");
+      notify("条目已更新", "success");
     } else {
       await api.createEntry(payload);
-      setToast("Entry added");
+      notify("条目已添加", "success");
     }
     const latest = await api.getEntries();
     setEntries(latest);
@@ -713,8 +719,7 @@ function App() {
       document.execCommand("copy");
       input.remove();
     }
-    setCopiedId(entry.id);
-    window.setTimeout(() => setCopiedId((current) => current === entry.id ? null : current), 1600);
+    notify("验证码已复制", "success");
   };
 
   const handleCopyAccount = async (account: string) => {
@@ -728,7 +733,7 @@ function App() {
       document.execCommand("copy");
       input.remove();
     }
-    setToast("邮箱已复制");
+    notify("邮箱已复制", "success");
   };
 
   const handleSecret = async (entry: TotpEntry) => {
@@ -736,7 +741,7 @@ function App() {
       const result = await api.getSecret(entry.id);
       setRevealed({ title: entry.label || entry.account, secret: result.secret });
     } catch (error) {
-      setToast(friendlyError(error));
+      notify(friendlyError(error), "error");
     }
   };
 
@@ -744,9 +749,9 @@ function App() {
     try {
       const result = await api.getOtpAuthUri(entry.id);
       await navigator.clipboard.writeText(result.uri);
-      setToast("otpauth URI 已复制");
+      notify("otpauth URI 已复制", "success");
     } catch (error) {
-      setToast(friendlyError(error));
+      notify(friendlyError(error), "error");
     }
   };
 
@@ -755,9 +760,9 @@ function App() {
     try {
       await api.deleteEntry(entry.id);
       setEntries((current) => current.filter((item) => item.id !== entry.id));
-      setToast("条目已删除");
+      notify("条目已删除", "success");
     } catch (error) {
-      setToast(friendlyError(error));
+      notify(friendlyError(error), "error");
     }
   };
 
@@ -795,7 +800,7 @@ function App() {
         {entries.length > 0 && <div className="results-line">{filteredEntries.length} 个条目{search && `，匹配“${search}”`}</div>}
         {filteredEntries.length > 0 ? (
           <section className="entry-grid" aria-label="TOTP 条目">
-            {filteredEntries.map((entry) => <TotpCard key={entry.id} entry={entry} now={now} copied={copiedId === entry.id} onCopy={handleCopy} onEdit={(item) => setDialog({ mode: "edit", entry: item })} onCopyAccount={handleCopyAccount} onSecret={handleSecret} onUri={handleUri} onDelete={handleDelete} />)}
+            {filteredEntries.map((entry) => <TotpCard key={entry.id} entry={entry} now={now} onCopy={handleCopy} onEdit={(item) => setDialog({ mode: "edit", entry: item })} onCopyAccount={handleCopyAccount} onSecret={handleSecret} onUri={handleUri} onDelete={handleDelete} />)}
           </section>
         ) : (
           <section className="empty-state">
@@ -812,7 +817,7 @@ function App() {
         )}
       </main>
       {dialog && <EntryDialog entry={dialog.entry} onClose={() => setDialog(null)} onSave={handleSave} />}
-      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} onImported={(count) => setToast(`已导入 ${count} 个条目`)} />}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} onNotify={notify} onImported={(count) => notify(`已导入 ${count} 个条目`, "success")} />}
       {revealed && (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setRevealed(null)}>
           <section className="modal-panel secret-dialog" role="dialog" aria-modal="true" aria-labelledby="secret-title">
@@ -823,7 +828,15 @@ function App() {
           </section>
         </div>
       )}
-      {toast && <div className="toast" role="status">{toast}</div>}
+      {notices.length > 0 && (
+        <div className="notice-stack" aria-live="polite" aria-atomic="false">
+          {notices.map((notice) => (
+            <div key={notice.id} className={`global-notice notice-${notice.kind}`} role={notice.kind === "error" ? "alert" : "status"}>
+              {notice.message}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

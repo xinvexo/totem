@@ -479,9 +479,8 @@ function TotpCard({ entry, now, copied, onCopy, onEdit, onSecret, onUri, onDelet
     <article className={`totp-card ${remaining <= 5 ? "is-expiring" : ""}`}>
       <div className="card-topline">
         <div className="entry-identity">
-          <span className="issuer-dot" aria-hidden="true">{(entry.issuer || entry.label || "?").slice(0, 1).toUpperCase()}</span>
           <div>
-          <h2>{entry.label || entry.issuer || "未命名条目"}</h2>
+            <h2>{entry.label || entry.issuer || "未命名条目"}</h2>
             <p>{entry.account}</p>
           </div>
         </div>

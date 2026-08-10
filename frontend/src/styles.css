@@ -90,8 +90,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .totp-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow); transform: translateY(-1px); }
 .totp-card.is-expiring { border-color: color-mix(in srgb, var(--danger) 44%, var(--line)); }
 .card-topline, .code-row, .card-meta, .field-label-row, .modal-actions, .settings-block { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.entry-identity { display: flex; align-items: center; min-width: 0; gap: 11px; }
-.issuer-dot { width: 30px; height: 30px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 9px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 800; }
+.entry-identity { min-width: 0; }
 .entry-identity h2 { overflow: hidden; margin: 0 0 3px; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; letter-spacing: -.02em; }
 .entry-identity p { overflow: hidden; margin: 0; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
 .entry-menu { position: relative; }

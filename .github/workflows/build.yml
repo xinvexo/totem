@@ -1,0 +1,65 @@
+name: Build Totem
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Linux x86_64
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path backend/Cargo.toml --check
+
+      - name: Run Rust tests
+        run: cargo test --manifest-path backend/Cargo.toml --locked
+
+      - name: Run Clippy
+        run: cargo clippy --manifest-path backend/Cargo.toml --all-targets --locked -- -D warnings
+
+      - name: Build release binary
+        run: cargo build --release --locked --manifest-path backend/Cargo.toml
+
+      - name: Package deployment artifact
+        run: |
+          mkdir -p artifact
+          cp backend/target/release/totem artifact/totem
+          cp deploy/totem.service artifact/totem.service
+          cp deploy/nginx.conf artifact/nginx.conf
+          sha256sum artifact/totem > artifact/SHA256SUMS
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: totem-linux-x86_64
+          path: artifact
+          if-no-files-found: error
+          retention-days: 30

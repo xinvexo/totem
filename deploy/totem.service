@@ -1,0 +1,18 @@
+[Unit]
+Description=Totem TOTP Authenticator
+After=network.target
+
+[Service]
+Type=simple
+User=totem
+Group=totem
+WorkingDirectory=/usr/local/totem
+EnvironmentFile=/usr/local/totem/.env
+ExecStart=/usr/local/totem/totem
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

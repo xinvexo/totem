@@ -1,0 +1,6 @@
+totem.example.com {
+    reverse_proxy 127.0.0.1:8080 {
+        # Keep the SSE stream unbuffered and open.
+        flush_interval -1
+    }
+}

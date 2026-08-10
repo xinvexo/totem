@@ -1,0 +1,17 @@
+# Rust
+/backend/target/
+
+# Frontend dependencies and generated assets
+/frontend/node_modules/
+/frontend/dist/*
+!/frontend/dist/.gitkeep
+
+# Local secrets and runtime data
+.env
+*.db
+*.db-shm
+*.db-wal
+
+# Tooling
+.DS_Store
+.idea/

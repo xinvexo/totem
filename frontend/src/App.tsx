@@ -157,7 +157,7 @@ function LoginScreen({ onLogin }: { onLogin: (password: string) => Promise<void>
     <main className="login-shell">
       <section className="login-panel">
         <div className="brand-lockup">
-          <span className="brand-mark">✦</span>
+          <img className="brand-mark" src="/totem.svg" alt="" aria-hidden="true" />
           <span>Totem</span>
         </div>
         <p className="eyebrow">自托管验证器</p>
@@ -646,14 +646,14 @@ function App() {
   };
 
   if (authenticated === null) {
-    return <div className="loading-screen"><span className="brand-mark">✦</span><span>正在加载 Totem…</span></div>;
+    return <div className="loading-screen"><img className="brand-mark" src="/totem.svg" alt="" aria-hidden="true" /><span>正在加载 Totem…</span></div>;
   }
   if (!authenticated) return <LoginScreen onLogin={handleLogin} />;
 
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="brand-lockup"><span className="brand-mark">✦</span><span>Totem</span></div>
+        <div className="brand-lockup"><img className="brand-mark" src="/totem.svg" alt="" aria-hidden="true" /><span>Totem</span></div>
         <div className="header-tools">
           <label className="search-box">
             <span aria-hidden="true">⌕</span>

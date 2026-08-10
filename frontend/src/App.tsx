@@ -110,29 +110,19 @@ function friendlyError(error: unknown) {
 }
 
 function useTotpStream(active: boolean, onEntries: (entries: TotpEntry[]) => void) {
-  const [connected, setConnected] = useState(false);
-
   useEffect(() => {
-    if (!active) {
-      setConnected(false);
-      return undefined;
-    }
+    if (!active) return undefined;
     const source = new EventSource("/api/totp/stream");
-    source.onopen = () => setConnected(true);
     source.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data) as TotpEntry[] | { entries?: TotpEntry[] };
         onEntries(Array.isArray(payload) ? payload : payload.entries ?? []);
-        setConnected(true);
       } catch {
         // Ignore a malformed event; the next full snapshot will recover state.
       }
     };
-    source.onerror = () => setConnected(false);
     return () => source.close();
   }, [active, onEntries]);
-
-  return connected;
 }
 
 function LoginScreen({ onLogin }: { onLogin: (password: string) => Promise<void> }) {
@@ -160,9 +150,6 @@ function LoginScreen({ onLogin }: { onLogin: (password: string) => Promise<void>
           <img className="brand-mark" src="/totem.svg" alt="" aria-hidden="true" />
           <span>Totem</span>
         </div>
-        <p className="eyebrow">自托管验证器</p>
-        <h1>把验证码安静地放在一个地方。</h1>
-        <p className="login-copy">一个简洁、私密的验证码空间，供你每天使用。</p>
         <form onSubmit={submit} className="login-form">
           <label htmlFor="admin-password">管理员密码</label>
           <input
@@ -180,7 +167,6 @@ function LoginScreen({ onLogin }: { onLogin: (password: string) => Promise<void>
             <span aria-hidden="true">↗</span>
           </button>
         </form>
-        <p className="login-footnote">当前会话由服务器端 HttpOnly Cookie 保护。</p>
       </section>
     </main>
   );
@@ -550,7 +536,7 @@ function App() {
   const applyEntries = useCallback((nextEntries: TotpEntry[]) => {
     setEntries(nextEntries);
   }, []);
-  const streamConnected = useTotpStream(authenticated === true, applyEntries);
+  useTotpStream(authenticated === true, applyEntries);
 
   useEffect(() => {
     if (!authenticated) {
@@ -666,13 +652,6 @@ function App() {
         </div>
       </header>
       <main className="content-shell">
-        <div className="page-intro">
-          <div>
-            <p className="eyebrow">我的验证器</p>
-            <h1>验证码</h1>
-          </div>
-          <div className="sync-status"><span className={`status-dot ${streamConnected ? "online" : "offline"}`} />{streamConnected ? "实时同步" : "正在重新连接…"}</div>
-        </div>
         {entries.length > 0 && <div className="results-line">{filteredEntries.length} 个条目{search && `，匹配“${search}”`}</div>}
         {filteredEntries.length > 0 ? (
           <section className="entry-grid" aria-label="TOTP 条目">
@@ -686,7 +665,6 @@ function App() {
             {entries.length === 0 && <button className="primary-button" type="button" onClick={() => setDialog({ mode: "add" })}>添加第一个条目 <span>↗</span></button>}
           </section>
         )}
-        <footer className="app-footer"><span>Secret 已在服务器端加密保存。</span><span>•</span><span>通过 SSE 实时更新。</span></footer>
       </main>
       {dialog && <EntryDialog entry={dialog.entry} onClose={() => setDialog(null)} onSave={handleSave} />}
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} onImported={(count) => setToast(`已导入 ${count} 个条目`)} />}

@@ -96,6 +96,9 @@ The binary is `backend/target/release/totem`. A simple deployment directory is:
 
 Run it directly with `./totem`, or install `deploy/totem.service` as a systemd unit. Totem listens on `127.0.0.1:8080` by default; terminate HTTPS in Nginx or Caddy.
 
+The server-specific Nginx configuration for `totem.xinvexo.com` is in
+[`deploy/nginx-totem.xinvexo.com.conf`](./deploy/nginx-totem.xinvexo.com.conf).
+
 ## Configuration
 
 | Variable | Default | Meaning |

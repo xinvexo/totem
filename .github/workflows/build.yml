@@ -54,7 +54,6 @@ jobs:
           cp backend/target/release/totem artifact/totem
           cp deploy/totem.service artifact/totem.service
           cp deploy/nginx.conf artifact/nginx.conf
-          cp deploy/nginx-totem.xinvexo.com.conf artifact/nginx-totem.xinvexo.com.conf
           sha256sum artifact/totem > artifact/SHA256SUMS
 
       - name: Upload Linux artifact

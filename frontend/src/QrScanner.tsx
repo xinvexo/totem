@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
+import { X } from "lucide-react";
 import { decodeQrImage } from "./qr";
 
 interface QrScannerProps {
@@ -80,7 +81,7 @@ export function QrScanner({ onDecoded, onClose }: QrScannerProps) {
           <p className="eyebrow">快速导入</p>
           <h3>扫描验证器二维码</h3>
         </div>
-        <button className="icon-button" type="button" onClick={onClose} aria-label="关闭扫描器">×</button>
+        <button className="icon-button" type="button" onClick={onClose} aria-label="关闭扫描器"><X size={16} aria-hidden="true" /></button>
       </div>
       <div className="camera-frame">
         <video ref={videoRef} muted playsInline />

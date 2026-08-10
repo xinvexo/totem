@@ -1,4 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Command,
+  Download,
+  Ellipsis,
+  Eye,
+  KeyRound,
+  Link2,
+  LockKeyhole,
+  LogOut,
+  Pencil,
+  Plus,
+  ScanLine,
+  Search,
+  Settings,
+  Trash2,
+  X,
+} from "lucide-react";
 import * as api from "./api";
 import { ApiError } from "./api";
 import { QrPasteZone } from "./QrPasteZone";
@@ -85,6 +102,31 @@ function remainingSeconds(entry: TotpEntry, now: number) {
   return Math.max(0, Math.ceil((entry.expiresAt - now) / 1000));
 }
 
+interface SegmentedProps<T extends string> {
+  label: string;
+  value: T;
+  options: readonly { value: T; label: string }[];
+  onChange: (value: T) => void;
+}
+
+function Segmented<T extends string>({ label, value, options, onChange }: SegmentedProps<T>) {
+  return (
+    <div className="segmented" role="group" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          className={option.value === value ? "is-active" : ""}
+          aria-pressed={option.value === value}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function friendlyError(error: unknown) {
   if (error instanceof ApiError) {
     const messages: Record<string, string> = {
@@ -146,9 +188,10 @@ function LoginScreen({ onLogin }: { onLogin: (password: string) => Promise<void>
   return (
     <main className="login-shell">
       <section className="login-panel">
-        <div className="brand-lockup">
+        <div className="login-lockup">
           <img className="brand-mark" src="/totem.svg" alt="" aria-hidden="true" />
-          <span>Totem</span>
+          <h1>Totem</h1>
+          <p>自托管 TOTP 验证器</p>
         </div>
         <form onSubmit={submit} className="login-form">
           <label htmlFor="admin-password">管理员密码</label>
@@ -163,8 +206,8 @@ function LoginScreen({ onLogin }: { onLogin: (password: string) => Promise<void>
           />
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="primary-button full-width" type="submit" disabled={busy}>
+            <LockKeyhole size={14} strokeWidth={2} aria-hidden="true" />
             {busy ? "验证中…" : "解锁 Totem"}
-            <span aria-hidden="true">↗</span>
           </button>
         </form>
       </section>
@@ -271,14 +314,17 @@ function EntryDialog({ entry, onClose, onSave }: EntryDialogProps) {
             <p className="eyebrow">{entry ? "编辑条目" : "新增条目"}</p>
             <h2 id="entry-dialog-title">{entry ? "更新验证器" : "添加 TOTP"}</h2>
           </div>
-          <button className="icon-button" type="button" onClick={onClose} aria-label="关闭">×</button>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="关闭"><X size={16} aria-hidden="true" /></button>
         </div>
         {!entry && (
           <>
             <div className="uri-import-box">
               <div className="field-label-row">
                 <label htmlFor="otpauth-uri">粘贴 otpauth URI</label>
-                <button className="text-button" type="button" onClick={() => setShowScanner(true)}>扫描二维码</button>
+                <button className="text-button" type="button" onClick={() => setShowScanner(true)}>
+                  <ScanLine size={13} aria-hidden="true" />
+                  扫描二维码
+                </button>
               </div>
               <textarea
                 id="otpauth-uri"
@@ -325,18 +371,28 @@ function EntryDialog({ entry, onClose, onSave }: EntryDialogProps) {
             </label>
             <label>
               算法
-              <select value={draft.algorithm} onChange={(event) => setField("algorithm", event.target.value as Algorithm)}>
-                <option value="SHA1">SHA1</option>
-                <option value="SHA256">SHA256</option>
-                <option value="SHA512">SHA512</option>
-              </select>
+              <Segmented
+                label="算法"
+                value={draft.algorithm}
+                options={[
+                  { value: "SHA1", label: "SHA1" },
+                  { value: "SHA256", label: "SHA256" },
+                  { value: "SHA512", label: "SHA512" },
+                ]}
+                onChange={(value) => setField("algorithm", value)}
+              />
             </label>
             <label>
               位数
-              <select value={draft.digits} onChange={(event) => setField("digits", event.target.value as "6" | "8")}>
-                <option value="6">6 位</option>
-                <option value="8">8 位</option>
-              </select>
+              <Segmented
+                label="位数"
+                value={draft.digits}
+                options={[
+                  { value: "6", label: "6 位" },
+                  { value: "8", label: "8 位" },
+                ]}
+                onChange={(value) => setField("digits", value)}
+              />
             </label>
             <label>
               周期
@@ -430,14 +486,17 @@ function SettingsModal({ onClose, onImported }: SettingsModalProps) {
             <p className="eyebrow">维护</p>
             <h2 id="settings-title">导入与导出</h2>
           </div>
-          <button className="icon-button" type="button" onClick={onClose} aria-label="关闭">×</button>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="关闭"><X size={16} aria-hidden="true" /></button>
         </div>
         <div className="settings-block">
           <div>
             <h3>导出备份</h3>
             <p>导出的文件包含明文 TOTP 密钥，请将 JSON 文件离线安全保存。</p>
           </div>
-          <button className="secondary-button" type="button" onClick={() => void exportData()} disabled={busy}>下载 JSON</button>
+          <button className="secondary-button" type="button" onClick={() => void exportData()} disabled={busy}>
+            <Download size={14} aria-hidden="true" />
+            下载 JSON
+          </button>
         </div>
         <div className="settings-divider" />
         <div className="settings-block">
@@ -446,6 +505,7 @@ function SettingsModal({ onClose, onImported }: SettingsModalProps) {
             <p>导入 Totem JSON 文件，或每行一个 otpauth:// URI 的文本文件。</p>
           </div>
           <label className="file-button">
+            <Download size={14} aria-hidden="true" style={{ transform: "rotate(180deg)" }} />
             <span>{busy ? "导入中…" : "选择文件"}</span>
             <input type="file" accept=".json,.txt,application/json,text/plain" disabled={busy} onChange={(event) => {
               const file = event.target.files?.[0];
@@ -475,6 +535,8 @@ interface TotpCardProps {
 function TotpCard({ entry, now, copied, onCopy, onEdit, onSecret, onUri, onDelete }: TotpCardProps) {
   const remaining = remainingSeconds(entry, now);
   const progress = Math.min(1, remaining / entry.period);
+  const ringRadius = 16;
+  const ringCircumference = 2 * Math.PI * ringRadius;
   return (
     <article className={`totp-card ${remaining <= 5 ? "is-expiring" : ""}`}>
       <div className="card-topline">
@@ -485,12 +547,26 @@ function TotpCard({ entry, now, copied, onCopy, onEdit, onSecret, onUri, onDelet
           </div>
         </div>
         <details className="entry-menu">
-          <summary aria-label={`操作：${entry.label || entry.account}`}>•••</summary>
+          <summary aria-label={`操作：${entry.label || entry.account}`}>
+            <Ellipsis size={18} aria-hidden="true" />
+          </summary>
           <div className="menu-popover">
-            <button type="button" onClick={() => onEdit(entry)}>编辑条目</button>
-            <button type="button" onClick={() => onSecret(entry)}>显示密钥</button>
-            <button type="button" onClick={() => onUri(entry)}>复制 otpauth URI</button>
-            <button className="danger-menu-item" type="button" onClick={() => onDelete(entry)}>删除</button>
+            <button type="button" onClick={() => onEdit(entry)}>
+              <Pencil size={14} aria-hidden="true" />
+              编辑条目
+            </button>
+            <button type="button" onClick={() => onSecret(entry)}>
+              <Eye size={14} aria-hidden="true" />
+              显示密钥
+            </button>
+            <button type="button" onClick={() => onUri(entry)}>
+              <Link2 size={14} aria-hidden="true" />
+              复制 otpauth URI
+            </button>
+            <button className="danger-menu-item" type="button" onClick={() => onDelete(entry)}>
+              <Trash2 size={14} aria-hidden="true" />
+              删除
+            </button>
           </div>
         </details>
       </div>
@@ -500,10 +576,20 @@ function TotpCard({ entry, now, copied, onCopy, onEdit, onSecret, onUri, onDelet
           {copied && <span className="copied-pill">已复制</span>}
         </button>
         <div className={`countdown ${remaining <= 5 ? "warning" : ""}`}>
-          <span>{remaining}</span><small>秒</small>
+          <svg className="countdown-ring" viewBox="0 0 40 40" aria-hidden="true">
+            <circle className="ring-track" cx="20" cy="20" r={ringRadius} />
+            <circle
+              className="ring-value"
+              cx="20"
+              cy="20"
+              r={ringRadius}
+              strokeDasharray={ringCircumference}
+              strokeDashoffset={ringCircumference * (1 - progress)}
+            />
+          </svg>
+          <span className="countdown-num">{remaining}</span>
         </div>
       </div>
-      <div className="progress-track" aria-hidden="true"><span style={{ "--progress": progress } as React.CSSProperties} /></div>
       <div className="card-meta"><span>{entry.issuer || "自定义发行方"}</span><span>{entry.algorithm} · {entry.period}秒</span></div>
     </article>
   );
@@ -638,16 +724,26 @@ function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="brand-lockup"><img className="brand-mark" src="/totem.svg" alt="" aria-hidden="true" /><span>Totem</span></div>
+        <div className="header-left">
+          <div className="brand-lockup"><img className="brand-mark" src="/totem.svg" alt="" aria-hidden="true" /><span>Totem</span></div>
+        </div>
         <div className="header-tools">
           <label className="search-box">
-            <span aria-hidden="true">⌕</span>
+            <Search size={13} aria-hidden="true" />
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索条目…" aria-label="搜索条目" />
-            {search && <button type="button" className="clear-search" onClick={() => setSearch("")} aria-label="清除搜索">×</button>}
+            {search && <button type="button" className="clear-search" onClick={() => setSearch("")} aria-label="清除搜索"><X size={13} aria-hidden="true" /></button>}
           </label>
-          <button className="secondary-button settings-button" type="button" onClick={() => setSettingsOpen(true)} aria-label="设置"><span>设置</span></button>
-          <button className="primary-button add-button" type="button" onClick={() => setDialog({ mode: "add" })}><span>+</span><span>添加</span></button>
-          <button className="icon-button logout-button" type="button" onClick={() => void handleLogout()} aria-label="退出登录" title="退出登录">↗</button>
+          <button className="secondary-button settings-button" type="button" onClick={() => setSettingsOpen(true)} aria-label="设置">
+            <Settings size={14} aria-hidden="true" />
+            <span>设置</span>
+          </button>
+          <button className="primary-button add-button" type="button" onClick={() => setDialog({ mode: "add" })}>
+            <Plus size={14} strokeWidth={2.5} aria-hidden="true" />
+            <span>添加</span>
+          </button>
+          <button className="icon-button logout-button" type="button" onClick={() => void handleLogout()} aria-label="退出登录" title="退出登录">
+            <LogOut size={15} aria-hidden="true" />
+          </button>
         </div>
       </header>
       <main className="content-shell">
@@ -658,10 +754,15 @@ function App() {
           </section>
         ) : (
           <section className="empty-state">
-            <div className="empty-icon">⌁</div>
+            <div className="empty-icon"><KeyRound size={24} strokeWidth={1.75} aria-hidden="true" /></div>
             <h2>{entries.length === 0 ? "还没有验证器条目" : "没有匹配的条目"}</h2>
             <p>{entries.length === 0 ? "添加 otpauth URI 或手动输入 Secret 开始使用。" : "请尝试其他发行方、账户或名称。"}</p>
-            {entries.length === 0 && <button className="primary-button" type="button" onClick={() => setDialog({ mode: "add" })}>添加第一个条目 <span>↗</span></button>}
+            {entries.length === 0 && (
+              <button className="primary-button" type="button" onClick={() => setDialog({ mode: "add" })}>
+                <Plus size={14} strokeWidth={2.5} aria-hidden="true" />
+                添加第一个条目
+              </button>
+            )}
           </section>
         )}
       </main>
@@ -670,7 +771,7 @@ function App() {
       {revealed && (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setRevealed(null)}>
           <section className="modal-panel secret-dialog" role="dialog" aria-modal="true" aria-labelledby="secret-title">
-            <div className="modal-head"><div><p className="eyebrow">敏感数据</p><h2 id="secret-title">{revealed.title}</h2></div><button className="icon-button" type="button" onClick={() => setRevealed(null)} aria-label="关闭">×</button></div>
+            <div className="modal-head"><div><p className="eyebrow">敏感数据</p><h2 id="secret-title">{revealed.title}</h2></div><button className="icon-button" type="button" onClick={() => setRevealed(null)} aria-label="关闭"><X size={16} aria-hidden="true" /></button></div>
             <p className="secret-warning">这是解密后的 TOTP Secret，请勿分享，也不要留在不安全的截图中。</p>
             <code className="secret-value">{revealed.secret}</code>
             <div className="modal-actions"><button className="secondary-button" type="button" onClick={() => setRevealed(null)}>关闭</button></div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Command } from "lucide-react";
 import { decodeQrImage } from "./qr";
 
 interface QrPasteZoneProps {
@@ -61,7 +62,7 @@ export function QrPasteZone({ onDecoded }: QrPasteZoneProps) {
       onDrop={handleDrop}
       aria-label="粘贴二维码截图"
     >
-      <span className="paste-dropzone-icon" aria-hidden="true">⌘</span>
+      <span className="paste-dropzone-icon" aria-hidden="true"><Command size={15} strokeWidth={2} /></span>
       <strong>粘贴二维码截图</strong>
       <span>使用 Ctrl+V / Cmd+V 直接粘贴，也可以拖入图片</span>
       {status !== "ready" && <small>{message}</small>}

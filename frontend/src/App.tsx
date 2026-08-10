@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Command,
   Download,
@@ -537,6 +537,27 @@ function TotpCard({ entry, now, copied, onCopy, onEdit, onSecret, onUri, onDelet
   const progress = Math.min(1, remaining / entry.period);
   const ringRadius = 16;
   const ringCircumference = 2 * Math.PI * ringRadius;
+  const menuRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (menuRef.current?.open && !menuRef.current.contains(event.target as Node)) {
+        menuRef.current.open = false;
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && menuRef.current?.open) {
+        menuRef.current.open = false;
+      }
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
+
   return (
     <article className={`totp-card ${remaining <= 5 ? "is-expiring" : ""}`}>
       <div className="card-topline">
@@ -545,7 +566,7 @@ function TotpCard({ entry, now, copied, onCopy, onEdit, onSecret, onUri, onDelet
             <h2>{entry.account || entry.label || "未命名条目"}</h2>
           </div>
         </div>
-        <details className="entry-menu">
+        <details ref={menuRef} className="entry-menu">
           <summary aria-label={`操作：${entry.label || entry.account}`}>
             <Ellipsis size={18} aria-hidden="true" />
           </summary>

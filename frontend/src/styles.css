@@ -151,6 +151,7 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3.5
 /* ---------- header ---------- */
 
 .app-shell { height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.app-shell.modal-open .content-shell { overflow-y: hidden; }
 .app-header {
   position: sticky;
   top: 0;
@@ -413,7 +414,6 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3.5
   .login-panel { padding: 18px 22px 28px; }
   .modal-backdrop { place-items: start center; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); }
   .modal-panel { max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); padding: 18px 18px 20px; border-radius: 12px; }
-  .entry-dialog .modal-actions { position: sticky; bottom: -20px; z-index: 1; margin: 0 -18px -20px; padding: 12px 18px 8px; background: var(--panel); }
   .form-grid { grid-template-columns: 1fr; }
   .wide-field { grid-column: auto; }
   .settings-block { display: grid; }

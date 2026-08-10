@@ -639,6 +639,7 @@ function App() {
   const [revealed, setRevealed] = useState<{ title: string; secret: string } | null>(null);
   const [notices, setNotices] = useState<AppNotice[]>([]);
   const noticeId = useRef(0);
+  const modalOpen = Boolean(dialog || settingsOpen || revealed);
 
   const notify = useCallback((message: string, kind: NoticeKind = "info") => {
     const id = noticeId.current + 1;
@@ -772,7 +773,7 @@ function App() {
   if (!authenticated) return <LoginScreen onLogin={handleLogin} />;
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${modalOpen ? " modal-open" : ""}`}>
       <header className="app-header">
         <div className="header-left">
           <div className="brand-lockup"><img className="brand-mark" src="/totem.svg" alt="" aria-hidden="true" /><span>Totem</span></div>

@@ -191,11 +191,12 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3.5
 
 /* ---------- entry cards ---------- */
 
-.content-shell { width: min(100% - 40px, 1040px); flex: 1 1 auto; min-height: 0; margin: 0 auto; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 34%, transparent) transparent; padding: 36px 0 40px; }
+.content-shell { width: 100%; flex: 1 1 auto; min-height: 0; min-width: 0; margin: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 34%, transparent) transparent; padding: 36px max(20px, calc((100vw - 1040px) / 2)) 40px; }
 .content-shell::-webkit-scrollbar { width: 6px; height: 6px; }
 .content-shell::-webkit-scrollbar-track { background: transparent; }
 .content-shell::-webkit-scrollbar-thumb { border: 1px solid transparent; border-radius: 999px; background: color-mix(in srgb, var(--muted) 34%, transparent); background-clip: padding-box; }
 .content-shell::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 54%, transparent); background-clip: padding-box; }
+.content-shell > .results-line, .content-shell > .entry-grid, .content-shell > .empty-state { width: min(100%, 1040px); margin-inline: auto; }
 .results-line { margin-bottom: 12px; color: var(--muted); font-size: 12px; }
 .entry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 
@@ -410,7 +411,7 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3.5
   .header-tools { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; }
   .search-box { width: auto; }
   .settings-button span:last-child { display: none; }
-  .content-shell { width: min(100% - 28px, 600px); scrollbar-width: none; padding-top: 26px; }
+  .content-shell { padding: 26px 14px 40px; scrollbar-width: none; }
   .content-shell::-webkit-scrollbar { width: 0; height: 0; }
   .entry-grid { grid-template-columns: 1fr; }
 }

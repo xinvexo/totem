@@ -151,7 +151,7 @@ pub fn all_entries(connection: &Connection) -> rusqlite::Result<Vec<StoredEntry>
         "SELECT id, issuer, account, label, secret_ciphertext, secret_nonce,
                 algorithm, digits, period, created_at, updated_at
          FROM totp_entries
-         ORDER BY issuer COLLATE NOCASE, label COLLATE NOCASE, account COLLATE NOCASE, id",
+         ORDER BY created_at ASC, id ASC",
     )?;
     let rows = statement.query_map([], |row| {
         Ok(StoredEntry {

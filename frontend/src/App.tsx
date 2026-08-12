@@ -110,6 +110,15 @@ function remainingSeconds(entry: TotpEntry, now: number) {
   return Math.max(0, Math.ceil((entry.expiresAt - now) / 1000));
 }
 
+function compareEntriesByCreatedAt(left: TotpEntry, right: TotpEntry) {
+  const leftTime = Date.parse(left.createdAt);
+  const rightTime = Date.parse(right.createdAt);
+  if (Number.isFinite(leftTime) && Number.isFinite(rightTime) && leftTime !== rightTime) {
+    return leftTime - rightTime;
+  }
+  return left.id - right.id;
+}
+
 interface SegmentedProps<T extends string> {
   label: string;
   value: T;
@@ -679,9 +688,10 @@ function App() {
   }, [authenticated]);
 
   const filteredEntries = useMemo(() => {
+    const orderedEntries = [...entries].sort(compareEntriesByCreatedAt);
     const query = search.trim().toLowerCase();
-    if (!query) return entries;
-    return entries.filter((entry) => [entry.issuer, entry.account, entry.label].some((value) => value.toLowerCase().includes(query)));
+    if (!query) return orderedEntries;
+    return orderedEntries.filter((entry) => [entry.issuer, entry.account, entry.label].some((value) => value.toLowerCase().includes(query)));
   }, [entries, search]);
 
   const handleLogin = async (password: string) => {

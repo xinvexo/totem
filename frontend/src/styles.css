@@ -191,7 +191,8 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3.5
 
 /* ---------- entry cards ---------- */
 
-.content-shell { width: min(100% - 40px, 1040px); flex: 1 1 auto; min-height: 0; margin: 0 auto; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; padding: 36px 0 40px; }
+.content-shell { width: min(100% - 40px, 1040px); flex: 1 1 auto; min-height: 0; margin: 0 auto; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 36px 0 40px; }
+.content-shell::-webkit-scrollbar { width: 0; height: 0; }
 .results-line { margin-bottom: 12px; color: var(--muted); font-size: 12px; }
 .entry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 
